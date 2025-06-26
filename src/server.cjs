@@ -119,6 +119,7 @@ app.post('/register', (req, res) => {
 
 // Login endpoint
 app.post('/login', (req, res) => {
+  console.log('Login request:', req.body)
   const { email, password } = req.body
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' })
