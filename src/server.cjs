@@ -132,7 +132,7 @@ app.post('/register', (req, res) => {
 //   })
 // })
 
-app.post('/Login', (req, res) => {
+app.post('/login', (req, res) => {
   console.log('Login request body:', req.body)  // <-- Add this line
 
   const { email, password } = req.body
