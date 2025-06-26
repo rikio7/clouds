@@ -118,19 +118,38 @@ app.post('/register', (req, res) => {
 })
 
 // Login endpoint
-app.post('/login', (req, res) => {
-  console.log('Login request:', req.body)
+// app.post('/login', (req, res) => {
+//   console.log('Login request:', req.body)
+//   const { email, password } = req.body
+//   if (!email || !password) {
+//     return res.status(400).json({ message: 'Email and password required' })
+//   }
+//   const sql = 'SELECT * FROM users WHERE email = ? AND password = ?'
+//   db.get(sql, [email, password], (err, row) => {
+//     if (err) return res.status(500).json({ message: err.message })
+//     if (!row) return res.status(401).json({ message: 'Invalid credentials' })
+//     res.json({ message: 'Login successful', userId: row.id })
+//   })
+// })
+
+app.post('/Login', (req, res) => {
+  console.log('Login request body:', req.body)  // <-- Add this line
+
   const { email, password } = req.body
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' })
   }
   const sql = 'SELECT * FROM users WHERE email = ? AND password = ?'
   db.get(sql, [email, password], (err, row) => {
-    if (err) return res.status(500).json({ message: err.message })
+    if (err) {
+      console.error('DB error:', err)  // <-- Also good to log DB errors
+      return res.status(500).json({ message: err.message })
+    }
     if (!row) return res.status(401).json({ message: 'Invalid credentials' })
     res.json({ message: 'Login successful', userId: row.id })
   })
 })
+
 
 // Start server
 app.listen(PORT, () => {
