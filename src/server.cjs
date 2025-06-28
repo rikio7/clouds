@@ -152,11 +152,33 @@ app.post('/register', (req, res) => {
 
 
 
-app.post('/login', (req, res) => {
-  const { email, password } = req.body
+// app.post('/login', (req, res) => {
+//   const { email, password } = req.body
 
+//   if (!email || !password) {
+//     // Always respond with JSON
+//     return res.status(400).json({ message: 'Email and password required' })
+//   }
+
+//   const sql = 'SELECT * FROM users WHERE email = ? AND password = ?'
+//   db.get(sql, [email, password], (err, row) => {
+//     if (err) {
+//       console.error('DB error:', err)
+//       return res.status(500).json({ message: 'Internal server error' })
+//     }
+//     if (!row) {
+//       return res.status(401).json({ message: 'Invalid credentials' })
+//     }
+//     // Success: respond with JSON data
+//     res.json({ message: 'Login successful', userId: row.id })
+//   })
+// })
+
+
+app.post('/login', (req, res) => {
+  console.log('Login request:', req.body)
+  const { email, password } = req.body
   if (!email || !password) {
-    // Always respond with JSON
     return res.status(400).json({ message: 'Email and password required' })
   }
 
@@ -164,12 +186,13 @@ app.post('/login', (req, res) => {
   db.get(sql, [email, password], (err, row) => {
     if (err) {
       console.error('DB error:', err)
-      return res.status(500).json({ message: 'Internal server error' })
+      return res.status(500).json({ message: err.message })
     }
     if (!row) {
+      console.log('No user found for:', email)
       return res.status(401).json({ message: 'Invalid credentials' })
     }
-    // Success: respond with JSON data
+    console.log('User logged in:', row.email)
     res.json({ message: 'Login successful', userId: row.id })
   })
 })
