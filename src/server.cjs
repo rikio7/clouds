@@ -202,28 +202,32 @@
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`)
 // })
-
 const express = require('express')
 const sqlite3 = require('sqlite3').verbose()
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const path = require('path')
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
-// Middleware
-app.use(cors())
+// Allow requests from your frontend origin (adjust as needed)
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://15.222.64.84:3000'], 
+  methods: ['GET', 'POST'],
+  credentials: true
+}))
 app.use(bodyParser.json())
 
-// SQLite database setup
-const dbPath = path.resolve(__dirname, 'clout.db')
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('❌ Failed to open database:', err.message)
-  } else {
-    console.log('✅ Connected to SQLite database.')
+app.get('/', (req, res) => {
+  res.send('clout backend is running!')
+})
 
+// Initialize SQLite DB
+const db = new sqlite3.Database('./clout.db', (err) => {
+  if (err) {
+    console.error('Error opening database:', err.message)
+  } else {
+    console.log('Connected to SQLite database.')
     db.run(
       `CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -231,60 +235,44 @@ const db = new sqlite3.Database(dbPath, (err) => {
         password TEXT
       )`,
       (err) => {
-        if (err) console.error('❌ Failed to create users table:', err.message)
-        else console.log('✅ Users table ready.')
+        if (err) console.error('Table creation error:', err.message)
       }
     )
   }
 })
 
-// Health check route
-app.get('/', (req, res) => {
-  res.send('✅ Clout backend is running!')
-})
-
 // Register endpoint
 app.post('/register', (req, res) => {
   const { email, password } = req.body
-
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' })
   }
-
   const sql = 'INSERT INTO users (email, password) VALUES (?, ?)'
   db.run(sql, [email, password], function (err) {
     if (err) {
-      console.error('Register error:', err.message)
-      return res.status(400).json({ message: 'User already exists or DB error' })
+      return res.status(400).json({ message: 'User already exists' })
     }
-    res.status(201).json({ message: 'User registered', userId: this.lastID })
+    res.json({ message: 'User registered', userId: this.lastID })
   })
 })
 
 // Login endpoint
 app.post('/login', (req, res) => {
   const { email, password } = req.body
-
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' })
   }
-
   const sql = 'SELECT * FROM users WHERE email = ? AND password = ?'
   db.get(sql, [email, password], (err, row) => {
     if (err) {
-      console.error('Login DB error:', err.message)
-      return res.status(500).json({ message: 'Internal server error' })
+      console.error('DB error:', err)
+      return res.status(500).json({ message: err.message })
     }
-
-    if (!row) {
-      return res.status(401).json({ message: 'Invalid credentials' })
-    }
-
-    res.status(200).json({ message: 'Login successful', userId: row.id })
+    if (!row) return res.status(401).json({ message: 'Invalid credentials' })
+    res.json({ message: 'Login successful', userId: row.id })
   })
 })
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://0.0.0.0:${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
